@@ -15,7 +15,7 @@ This project provides real-time visualization of 5G RF (Radio Frequency) signal 
 
 ## Demo Video
 
-<video src="3D-signal-demo.webm" width="100%" controls></video>
+![Interactive 5G Signal Heatmap](3D-signal-demo.gif)
 
 *Interactive 5G signal heatmap with real-time controls*
 
