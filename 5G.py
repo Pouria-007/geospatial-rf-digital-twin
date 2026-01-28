@@ -279,6 +279,10 @@ def generate_heatmap():
                     # Calculate signal strength at this distance
                     signal_strength = calculate_signal_strength(actual_dist, max_range, min_range)
                     
+                    # Debug: Print first few calculations
+                    if tower_idx == 0 and ring_idx == 0 and _ < 3:
+                        print(f"    DEBUG: dist={actual_dist:.1f}m, signal={signal_strength:.1f}%, max_range={max_range:.1f}m")
+                    
                     # Get smooth gradient color based on signal strength
                     color = calculate_gradient_color(signal_strength)
                     
@@ -298,16 +302,30 @@ def generate_heatmap():
                     final_points.append(Gf.Vec3f(target_x, target_y, target_z))
                     final_colors.append(color)
         
-        # ACTION 2: Write Data - EXACTLY like v1
+        # ACTION 2: Write Data with explicit vertex interpolation
         points_prim.GetPointsAttr().Set(final_points)
-        points_prim.GetDisplayColorAttr().Set(final_colors)
+        
+        # CRITICAL: Set displayColor primvar with VERTEX interpolation
+        # This ensures each point gets its own unique color
+        color_primvar = points_prim.GetDisplayColorPrimvar()
+        color_primvar.Set(final_colors)
+        color_primvar.SetInterpolation('vertex')
         
         # Set widths array (one per point) to match POINT_SIZE
         num_points = len(final_points)
         widths_array = [POINT_SIZE] * num_points
-        points_prim.GetWidthsAttr().Set(widths_array)
+        widths_attr = points_prim.GetWidthsAttr()
+        if not widths_attr:
+            widths_attr = points_prim.CreateWidthsAttr()
+        widths_attr.Set(widths_array)
         
-        print("SUCCESS: Signal Map Updated with gradient colors")
+        # DEBUG: Show first 10 colors to verify they're different
+        print(f"DEBUG - First 10 colors in final_colors array:")
+        for i in range(min(10, len(final_colors))):
+            c = final_colors[i]
+            print(f"  Point {i}: RGB({c[0]:.2f}, {c[1]:.2f}, {c[2]:.2f})")
+        
+        print("SUCCESS: Signal Map Updated with gradient colors (VERTEX interpolation)")
         
         # Statistics - Check signal strength distribution
         all_signals = []
